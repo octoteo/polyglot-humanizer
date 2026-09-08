@@ -66,3 +66,14 @@ Preserve normal Chinese punctuation: `，。！？；：“”‘’（）……
 ## Voice override
 
 A writing sample overrides weak rules. If the author genuinely uses short fragments, dashes, parentheses, or repeated sentence openings, preserve those habits at roughly the observed rate.
+
+## Legal / appeal register
+
+Consumer complaints, appeals, legal memoranda, and evidence statements legitimately use structures that can look model-like in ordinary prose. Preserve them when they perform real argumentative work:
+
+- A genuine distinction such as “不是无理由退款，而是履行是否符合约定” is an issue definition, not fake contrast.
+- Lists of evidence, remedies, contractual elements, or review questions may contain three or more parallel items and should not be collapsed merely to avoid a triad.
+- Numbered “第一/第二/第三” structure is acceptable when each item maps to a distinct issue the reviewer must decide.
+- Repetition of the exact disputed promise can be useful when tying listing → pre-sale confirmation → performance → remedy.
+
+Still remove ceremonial legalese, repeated conclusions, personal attacks, empty threats, and statute dumping that does not change the requested decision. Prefer an evidence-first path that a reviewer can verify quickly.

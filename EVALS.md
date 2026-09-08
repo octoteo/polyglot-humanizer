@@ -60,3 +60,27 @@ A useful regression must check both sides of the tradeoff:
 - **Voice/register:** stylistic cleanup must not flatten legitimate domain language or a supplied author voice.
 
 Future releases should add contributed real-world fixtures only when their licensing/privacy status is clear.
+
+## v1.2.0 legal/appeal register regression
+
+A private real-world Chinese consumer appeal was used for a 10-arm rewrite evaluation. The case text and identifiers are intentionally **not** committed to this public repository. Only generalized regression behavior is retained.
+
+The evaluation exposed four framework-level problems:
+
+1. Genuine issue framing such as “not a no-reason return, but whether performance conformed to the agreement” was misclassified as fake contrast.
+2. Evidence/remedy lists were misclassified as mechanical triads.
+3. Long appeals were routed paragraph-by-paragraph, so short paragraphs lost the document's legal/appeal context.
+4. Deterministic preservation treated repeated factual tokens and outline numbering as semantic facts, penalizing legitimate deduplication and formatting.
+
+### Changes
+
+- Add document-level `legal-appeal` register detection with paragraph inheritance.
+- Downgrade genuine legal issue distinctions and evidence/remedy triads to weak signals in that register.
+- Keep ordinary marketing fake contrast strong outside the legal/appeal register.
+- Make invariant verification deduplication-safe.
+- Ignore outline numbering such as `1.` and `2.` as structural markers.
+- Keep semantic claim preservation in the hidden claim ledger rather than relying on token counts.
+
+### Privacy rule
+
+Real user disputes may be used transiently for local evaluation, but public fixtures should be synthetic or explicitly contributed for publication. Do not commit account identifiers, screenshots, order facts, phone fragments, or private conversations without explicit permission.

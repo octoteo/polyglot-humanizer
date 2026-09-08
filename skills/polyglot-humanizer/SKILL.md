@@ -10,7 +10,7 @@ Refine model-shaped prose into natural, language-native writing without changing
 ## Workflow
 
 1. **Protect non-prose.** Keep code blocks, inline code, commands, paths, URLs, Markdown link targets, structured data, citations, and literal identifiers unchanged unless the user explicitly asks to edit them.
-2. **Route by locale.** Detect `zh-CN` or `en-US` block by block. For mixed documents, do not force one language's rules onto the other.
+2. **Route by locale and register.** Detect `zh-CN` or `en-US` block by block, then identify the functional register. For mixed documents, do not force one language's rules onto the other. In legal/appeal writing, preserve genuine issue distinctions, evidence lists, requested remedies, and necessary numbered structure.
 3. **Load the right guidance.** Always read `references/core.md` and `references/preservation.md`; read `references/zh-CN.md` for Chinese blocks and `references/en-US.md` for English blocks.
 4. **Scan before rewriting when tools are available.** Run `node scripts/cli.mjs scan <file> --format json` for files, or pipe pasted text through stdin. Treat findings as style signals, not proof of AI authorship. Strong patterns justify direct editing; weak patterns need context or clustering.
 5. **Build a hidden claim ledger.** Before rewriting, identify every source claim and its actor, action, object, result, attribution, uncertainty, and time. This is an internal preservation contract, not user-facing output unless audit mode is requested.

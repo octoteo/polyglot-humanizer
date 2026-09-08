@@ -28,7 +28,7 @@ const realLikeCases = [
 for (const c of realLikeCases) {
   test(`zh regression: ${c.name}`, () => {
     const result = scanText(c.text);
-    assert.equal(result.version, '1.1.0');
+    assert.equal(result.version, '1.2.0');
     const ids = new Set(result.findings.map(x => x.id));
     for (const id of c.expectIds) assert.ok(ids.has(id), `missing ${id}`);
     assert.ok(result.strongFindings >= 1, 'expected at least one strong finding');
@@ -73,5 +73,40 @@ test('concrete foundation statement remains weak-only', () => {
 test('single legitimate academic phrase remains weak-only', () => {
   const text = '本研究深入分析了三种算法的误差来源，结果见表 2。';
   const result = scanText(text);
+  assert.equal(result.strongFindings, 0);
+});
+
+test('legal appeal distinction is not a strong fake-contrast finding', () => {
+  const text = '本人主张的不是虚拟商品购买后反悔要求无理由退款，而是卖家实际履行是否符合交易前明确约定。请平台结合聊天记录和实际验证页面复核。';
+  const result = scanText(text);
+  assert.equal(result.blocks[0].register, 'legal-appeal');
+  const contrast = result.findings.find(x => x.id === 'zh-contrast-001');
+  assert.ok(contrast);
+  assert.equal(contrast.severity, 'P3');
+});
+
+test('legal appeal evidence enumeration stays weak', () => {
+  const text = '申请人工复核。请结合商品描述、付款前聊天记录、实际验证页面以及付款后反馈记录审查卖家是否按约履行并处理退款。';
+  const result = scanText(text);
+  assert.equal(result.blocks[0].register, 'legal-appeal');
+  const triads = result.findings.filter(x => x.id === 'zh-triad-001');
+  assert.ok(triads.length >= 1);
+  assert.ok(triads.every(x => x.severity === 'P3'));
+  assert.equal(result.strongFindings, 0);
+});
+
+test('general fake contrast remains strong outside appeal register', () => {
+  const text = '这不是一次普通升级，而是一场重新定义未来的革命。';
+  const result = scanText(text);
+  const contrast = result.findings.find(x => x.id === 'zh-contrast-001');
+  assert.ok(contrast);
+  assert.equal(contrast.severity, 'P1');
+});
+
+test('document-level appeal register propagates to short evidence paragraphs', () => {
+  const text = '申请对退款争议进行人工复核。卖家是否按交易约定履行是本案核心，证据包括聊天记录和验证页面。\n\n商品页面写明提供方法、操作视频、远程支持等内容。\n\n本人退款理由不是主观认为教程不好，而是实际操作结果不符合交易前确认。';
+  const result = scanText(text);
+  assert.equal(result.documentRegister, 'legal-appeal');
+  assert.ok(result.blocks.every(b => b.register === 'legal-appeal'));
   assert.equal(result.strongFindings, 0);
 });

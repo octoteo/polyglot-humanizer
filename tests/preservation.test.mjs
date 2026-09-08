@@ -24,3 +24,17 @@ test('markdown link targets are preserved even if link text changes', () => {
   const b='See [this guide](https://example.com/guide).';
   assert.equal(verifyPreservation(a,b).pass,true);
 });
+
+test('preservation allows deduplicating repeated factual tokens', () => {
+  const before = '商品页写服务成功率100。聊天里再次提到服务成功率100。';
+  const after = '商品页写服务成功率100。';
+  const result = verifyPreservation(before, after);
+  assert.equal(result.pass, true);
+});
+
+test('preservation ignores added outline numbering', () => {
+  const before = '请核验商品描述和聊天记录。';
+  const after = '1. 请核验商品描述。\n2. 请核验聊天记录。';
+  const result = verifyPreservation(before, after);
+  assert.equal(result.pass, true);
+});

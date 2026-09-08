@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RULE_DIR = path.resolve(__dirname, '../../references/rules');
 
 export const severityWeight = { P0: 4, P1: 3, P2: 2, P3: 1 };
-export const runtimeVersion = '1.1.0';
+export const runtimeVersion = '1.2.0';
 
 export function loadRules(locale) {
   const p = path.join(RULE_DIR, `${locale}.json`);
@@ -88,6 +88,38 @@ function repeatedOpeners(block, locale) {
   return findings;
 }
 
+export function detectRegister(text, locale='zh-CN') {
+  if (locale !== 'zh-CN') return 'general';
+  const signals = [
+    /申诉|复核/g,
+    /证据|凭证|截图|记录/g,
+    /争议|纠纷/g,
+    /约定|履行|违约/g,
+    /退款|退货|售后/g,
+    /民法典|第\s*\d+\s*条|平台规则/g,
+    /小法庭|人工判定|人工复核/g,
+  ];
+  let hits = 0;
+  for (const re of signals) if (re.test(text)) hits++;
+  return hits >= 3 ? 'legal-appeal' : 'general';
+}
+
+function applyRegisterGuards(blockText, locale, blockFindings, inheritedRegister='general') {
+  const register = inheritedRegister !== 'general' ? inheritedRegister : detectRegister(blockText, locale);
+  if (register !== 'legal-appeal') return blockFindings;
+  const legalIssueContrast = /(?:退款|退货|反悔|无理由|虚拟商品|履行|约定|承诺|实际操作|实际结果|教程)/;
+  const legalEnum = /(?:证据|凭证|截图|记录|页面|商品描述|聊天|约定|履行|救济|重作|退货|减少价款|报酬|第\s*\d+\s*条)/;
+  return blockFindings.map(f => {
+    if (['zh-contrast-001','zh-contrast-002','zh-contrast-003'].includes(f.id) && legalIssueContrast.test(f.text)) {
+      return { ...f, severity:'P3', message:'法律/申诉语域中的真实争议区分；通常保留，除非只是重复强调。' };
+    }
+    if (f.id === 'zh-triad-001' && (legalEnum.test(f.text) || register === 'legal-appeal')) {
+      return { ...f, severity:'P3', message:'法律/申诉语域中的证据、救济或条件枚举；通常属于必要结构。' };
+    }
+    return f;
+  });
+}
+
 function aggregateBlockFindings(blockText, locale, blockFindings) {
   if (locale !== 'zh-CN') return [];
   const aggregates = [];
@@ -127,9 +159,11 @@ export function scanText(input, forcedLocale='auto') {
   const { text } = protectText(input);
   const findings = [];
   const blocks = splitBlocks(text);
+  const documentRegister = detectRegister(text, 'zh-CN');
   for (const block of blocks) {
     const locale = forcedLocale === 'auto' ? detectLocale(block.text) : forcedLocale;
     const rules = loadRules(locale);
+    const register = (locale === 'zh-CN' && documentRegister !== 'general') ? documentRegister : detectRegister(block.text, locale);
     const blockFindings = [];
     for (const rule of rules) {
       const re = compileRule(rule);
@@ -142,13 +176,14 @@ export function scanText(input, forcedLocale='auto') {
       }
     }
     for (const f of repeatedOpeners(block.text, locale)) blockFindings.push(f);
-    findings.push(...blockFindings);
-    findings.push(...aggregateBlockFindings(block.text, locale, blockFindings));
+    const guardedFindings = applyRegisterGuards(block.text, locale, blockFindings, register);
+    findings.push(...guardedFindings);
+    findings.push(...aggregateBlockFindings(block.text, locale, guardedFindings));
   }
   findings.sort((a,b)=>(severityWeight[b.severity]-severityWeight[a.severity]) || ((a.start??1e9)-(b.start??1e9)));
   const score = findings.reduce((s,f)=>s+severityWeight[f.severity],0);
   const strong = findings.filter(f=>f.severity==='P0'||f.severity==='P1').length;
-  return { version:runtimeVersion, blocks: blocks.map(b=>({locale: forcedLocale==='auto'?detectLocale(b.text):forcedLocale, start:b.start,end:b.end})), score, strongFindings: strong, findings };
+  return { version:runtimeVersion, documentRegister, blocks: blocks.map(b=>{ const locale=forcedLocale==='auto'?detectLocale(b.text):forcedLocale; const register=(locale==='zh-CN' && documentRegister!=='general')?documentRegister:detectRegister(b.text, locale); return {locale, register, start:b.start,end:b.end}; }), score, strongFindings: strong, findings };
 }
 
 export function extractInvariants(text) {
@@ -168,6 +203,13 @@ export function extractInvariants(text) {
     }
   };
 
+  // Ignore list/outline numbering as structure, not factual numeric content.
+  for (const m of text.matchAll(/(?:^|\n)[ \t]*(?:\d{1,3}|[一二三四五六七八九十]{1,3})[.．、)](?=[ \t])/g)) {
+    const local = m[0].search(/(?:\d|[一二三四五六七八九十])/);
+    const start = m.index + Math.max(local, 0);
+    mark(start, m.index + m[0].length);
+  }
+
   collect('md-target', /\[[^\]]+\]\(([^)]+)\)/g, m=>m[1]);
   collect('url', /https?:\/\/[^\s)\]}>]+/g, m=>m[0], v=>v.replace(/[.,;:!?]+$/,''));
   collect('email', /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi);
@@ -184,8 +226,11 @@ export function extractInvariants(text) {
 export function verifyPreservation(before, after) {
   const a=extractInvariants(before), b=extractInvariants(after);
   const missing=[], added=[];
-  for (const [k,n] of a) if ((b.get(k)||0)<n) missing.push({token:k,count:n-(b.get(k)||0)});
-  for (const [k,n] of b) if ((a.get(k)||0)<n) added.push({token:k,count:n-(a.get(k)||0)});
+  // Deterministic preservation protects the presence of unique factual tokens,
+  // not their repetition count. Humanizing often removes duplicate mentions.
+  // Claim-level completeness is enforced separately by the semantic claim ledger.
+  for (const [k] of a) if (!b.has(k)) missing.push({token:k,count:1});
+  for (const [k] of b) if (!a.has(k)) added.push({token:k,count:1});
   return { pass: missing.length===0 && added.length===0, missing, added };
 }
 

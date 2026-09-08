@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.0 - 2026-09-09
+
+- Add `legal-appeal` register detection for Simplified Chinese consumer complaints and review requests.
+- Downgrade genuine legal issue distinctions so “not no-reason return, but non-conforming performance” is not misclassified as fake contrast.
+- Downgrade evidence/remedy enumerations in appeal context instead of treating necessary three-item lists as mechanical triads.
+- Add regression tests proving ordinary marketing fake contrast remains strong outside legal/appeal context.
+- Add appeal-register guidance favoring evidence-first structure over legalese or statute dumping.
+- Make deterministic preservation deduplication-safe: repeated mentions may be compressed as long as each unique invariant remains present; semantic claim completeness remains the claim ledger’s responsibility.
+- Ignore Markdown/outline numbering such as `1.`, `2.` as structural markers rather than invented factual numbers.
+
 ## 1.1.0 - 2026-09-08
 
 - Harden `zh-CN` against four real-world public Humanizer regression examples.
