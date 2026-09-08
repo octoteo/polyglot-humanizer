@@ -2,7 +2,7 @@
 
 ## v1.x
 
-- Expand synthetic and contributed regression fixtures for `zh-CN` and `en-US`.
+- Continue expanding privacy-safe real-world and contributed regression fixtures for `zh-CN` and `en-US`.
 - Add more register-specific false-positive tests.
 - Improve mixed-language span routing inside single paragraphs.
 

@@ -2,7 +2,7 @@
 
 Language-native AI-writing refinement for humans and agents.
 
-**v1.0.0 supports `zh-CN` and `en-US`.**
+**v1.1.0 supports `zh-CN` and `en-US`.**
 
 Polyglot Humanizer removes model-shaped prose while preserving meaning, facts, register, and author voice. It is designed as an Agent Skill with a deterministic scanner and preservation verifier, not as an AI-authorship detector.
 
@@ -10,7 +10,7 @@ Polyglot Humanizer removes model-shaped prose while preserving meaning, facts, r
 
 - **Style signals, not authorship claims.** A flagged pattern means “this reads like a common model-shaped habit,” not “AI wrote this.”
 - **Language-native rules.** `zh-CN` and `en-US` use separate rule packs; English rules are not mechanically translated into Chinese.
-- **Preserve facts.** Numbers, dates, URLs, code, commands, link targets, and other high-confidence invariants must survive rewriting.
+- **Preserve facts and claims.** Token invariants must survive rewriting, and a hidden claim ledger blocks invented events, anecdotes, mechanisms, sources, or chronology.
 - **Voice beats generic cleanup.** A supplied writing sample overrides weak style heuristics.
 - **Detect and rewrite are separate.** Deterministic checks help the Agent find patterns; the Agent performs semantic rewriting.
 
@@ -46,9 +46,9 @@ Input
   -> block locale routing
   -> core + locale rule composition
   -> deterministic scan
-  -> Agent semantic audit
+  -> Agent semantic audit + claim ledger
   -> voice/register-aware rewrite
-  -> preservation verification
+  -> semantic + deterministic preservation verification
   -> post-rewrite scan
   -> final
 ```
@@ -80,6 +80,12 @@ scan <file|-> [--locale auto|zh-CN|en-US] [--format text|json]
 verify <before> <after> [--format text|json]
 validate-rules
 ```
+
+## Validation
+
+`v1.1.0` adds a real-world `zh-CN` regression pass against four public Humanizer examples spanning business copy, marketing, academic prose, and opinion/blog writing. The regression exposed both scanner recall gaps and preservation failures that simple token checks could miss. See [`EVALS.md`](EVALS.md) for the comparison methodology and results.
+
+Current automated suite: **23 tests**, plus rule-pack validation.
 
 ## Non-goals
 

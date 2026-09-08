@@ -6,6 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RULE_DIR = path.resolve(__dirname, '../../references/rules');
 
 export const severityWeight = { P0: 4, P1: 3, P2: 2, P3: 1 };
+export const runtimeVersion = '1.1.0';
 
 export function loadRules(locale) {
   const p = path.join(RULE_DIR, `${locale}.json`);
@@ -87,6 +88,41 @@ function repeatedOpeners(block, locale) {
   return findings;
 }
 
+function aggregateBlockFindings(blockText, locale, blockFindings) {
+  if (locale !== 'zh-CN') return [];
+  const aggregates = [];
+  const countById = new Map();
+  for (const f of blockFindings) countById.set(f.id, (countById.get(f.id) || 0) + 1);
+
+  if ((countById.get('zh-jargon-001') || 0) >= 3) {
+    aggregates.push({
+      id: 'zh-heuristic-jargon-cluster', locale, category: 'semantic-emptiness', severity: 'P1', evidence: 'E1',
+      text: blockText, message: '同一段出现三个以上抽象业务词，语义被黑话遮蔽的风险较高。',
+      rewrite: '恢复主体、动作、对象和可观察结果；不要用同义黑话互换。'
+    });
+  }
+
+  const marketingCount = blockFindings.filter(f => f.id === 'zh-marketing-002').length;
+  if (marketingCount >= 3) {
+    aggregates.push({
+      id: 'zh-heuristic-marketing-cluster', locale, category: 'marketing', severity: 'P1', evidence: 'E1',
+      text: blockText, message: '同一段聚集多个宣传性形容词，可能在用情绪替代信息。',
+      rewrite: '保留可验证特色，删除没有信息增量的宣传性修饰。'
+    });
+  }
+
+  const academicIds = new Set(['zh-academic-001', 'zh-foundation-001', 'zh-transition-001']);
+  const academicSignals = blockFindings.filter(f => academicIds.has(f.id));
+  if (academicSignals.some(f => f.id === 'zh-academic-001') && academicSignals.length >= 3) {
+    aggregates.push({
+      id: 'zh-heuristic-academic-cluster', locale, category: 'translationese', severity: 'P1', evidence: 'E1',
+      text: blockText, message: '同一段聚集多个学术模板信号，可能用框架性措辞代替研究内容。',
+      rewrite: '优先写研究对象、方法和来源已有的结论，删除没有信息增量的“深入/关键/未来基础”包装。'
+    });
+  }
+  return aggregates;
+}
+
 export function scanText(input, forcedLocale='auto') {
   const { text } = protectText(input);
   const findings = [];
@@ -94,28 +130,33 @@ export function scanText(input, forcedLocale='auto') {
   for (const block of blocks) {
     const locale = forcedLocale === 'auto' ? detectLocale(block.text) : forcedLocale;
     const rules = loadRules(locale);
+    const blockFindings = [];
     for (const rule of rules) {
       const re = compileRule(rule);
       for (const m of block.text.matchAll(re)) {
-        findings.push({
+        blockFindings.push({
           id: rule.id, locale, category: rule.category, severity: rule.severity, evidence: rule.evidence,
           start: block.start + m.index, end: block.start + m.index + m[0].length,
           text: m[0], message: rule.message, rewrite: rule.rewrite
         });
       }
     }
-    for (const f of repeatedOpeners(block.text, locale)) findings.push(f);
+    for (const f of repeatedOpeners(block.text, locale)) blockFindings.push(f);
+    findings.push(...blockFindings);
+    findings.push(...aggregateBlockFindings(block.text, locale, blockFindings));
   }
   findings.sort((a,b)=>(severityWeight[b.severity]-severityWeight[a.severity]) || ((a.start??1e9)-(b.start??1e9)));
   const score = findings.reduce((s,f)=>s+severityWeight[f.severity],0);
   const strong = findings.filter(f=>f.severity==='P0'||f.severity==='P1').length;
-  return { version:'1.0.0', blocks: blocks.map(b=>({locale: forcedLocale==='auto'?detectLocale(b.text):forcedLocale, start:b.start,end:b.end})), score, strongFindings: strong, findings };
+  return { version:runtimeVersion, blocks: blocks.map(b=>({locale: forcedLocale==='auto'?detectLocale(b.text):forcedLocale, start:b.start,end:b.end})), score, strongFindings: strong, findings };
 }
 
 export function extractInvariants(text) {
   const bag = new Map();
   const occupied = new Uint8Array(text.length);
-  const add=(kind,val)=>{ const k=`${kind}:${val}`; bag.set(k,(bag.get(k)||0)+1); };
+  const add=(kind,val)=>{
+    const k=`${kind}:${val}`; bag.set(k,(bag.get(k)||0)+1);
+  };
   const mark=(start,end)=>{ for(let i=start;i<end;i++) occupied[i]=1; };
   const overlaps=(start,end)=>{ for(let i=start;i<end;i++) if(occupied[i]) return true; return false; };
   const collect=(kind,re,valueFn=(m)=>m[0],normalize=(v)=>v)=>{
@@ -131,6 +172,9 @@ export function extractInvariants(text) {
   collect('url', /https?:\/\/[^\s)\]}>]+/g, m=>m[0], v=>v.replace(/[.,;:!?]+$/,''));
   collect('email', /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi);
   collect('inline-code', /`[^`\n]+`/g);
+  collect('relative-time', /(?:今天|昨天|明天|前天|后天|本周|上周|下周|这周|本月|上月|下月|这个月|上个月|下个月|今年|去年|明年|前年|后年)/g);
+  collect('zh-number-range', /[零〇一二两三四五六七八九十百千万亿]+(?:到|至|[-—–])[零〇一二两三四五六七八九十百千万亿]+(?:年|个月|月|日|天|小时|分钟|秒|件|例|人|次|项|篇|台|元|万元|亿元|%|％)/g);
+  collect('zh-number', /[零〇一二两三四五六七八九十百千万亿]+(?:年|个月|月|日|天|小时|分钟|秒|件|例|人|次|项|篇|台|元|万元|亿元|%|％)/g);
   collect('date', /\b20\d{2}[-\/.年](?:0?[1-9]|1[0-2])(?:[-\/.月](?:0?[1-9]|[12]\d|3[01])日?)?\b/g);
   collect('version', /\bv?\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9.-]+)?\b/g);
   collect('number', /(?<![\w.])[-+]?\d+(?:\.\d+)?(?:%|％|ms|s|kg|g|GB|MB|TB|V|W|kW|MHz|GHz|°C|℃)?(?!\w)/g);

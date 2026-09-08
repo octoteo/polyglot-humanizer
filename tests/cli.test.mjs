@@ -15,5 +15,5 @@ test('scan CLI emits JSON', () => {
   assert.equal(r.status,0,r.stderr);
   const data=JSON.parse(r.stdout);
   assert.ok(data.findings.length>0);
-  assert.equal(data.version,'1.0.0');
+  assert.equal(data.version,'1.1.0');
 });

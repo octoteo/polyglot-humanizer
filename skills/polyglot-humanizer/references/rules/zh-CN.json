@@ -32,7 +32,7 @@
     "type": "regex",
     "pattern": "不是[^。！？；]{1,40}(?:而是|而在于)[^。！？；]{1,60}",
     "flags": "g",
-    "message": "检查是否为没有真实对立面的‘不是X而是Y’。",
+    "message": "检查是否为没有真实对立面的“不是X而是Y”。",
     "rewrite": "若X不是实际误解，直接写Y。"
   },
   {
@@ -44,7 +44,7 @@
     "type": "regex",
     "pattern": "不仅[^。！？；]{1,40}(?:还|更|而且)[^。！？；]{1,60}",
     "flags": "g",
-    "message": "检查‘不仅…更…’是否只是放大语气。",
+    "message": "检查“不仅…更…”是否只是放大语气。",
     "rewrite": "保留真实递进，否则合并成直接陈述。"
   },
   {
@@ -92,7 +92,7 @@
     "type": "regex",
     "pattern": "通过[^，。！？]{1,35}来实现",
     "flags": "g",
-    "message": "可能是冗长的‘通过…来实现’结构。",
+    "message": "可能是冗长的“通过…来实现”结构。",
     "rewrite": "能用主动句时直接写主体和动作。"
   },
   {
@@ -124,11 +124,11 @@
     "locale": "zh-CN",
     "category": "rhythm",
     "severity": "P2",
-    "evidence": "E1",
+    "evidence": "E2",
     "type": "regex",
-    "pattern": "[一-鿿]{2,8}、[一-鿿]{2,8}、[一-鿿]{2,8}",
+    "pattern": "[一-鿿]{2,10}、[一-鿿]{2,10}(?:、|和|与|及)[一-鿿]{2,10}",
     "flags": "g",
-    "message": "三项并列可能是机械凑三；检查三项是否都提供独立信息。",
+    "message": "三项并列可能是机械凑三；检查三项是否确实属于同一层级且都提供独立信息。",
     "rewrite": "保留真实三项，否则合并或展开最重要的一项。"
   },
   {
@@ -140,7 +140,7 @@
     "type": "regex",
     "pattern": "[一-鿿]{1,6}化、[一-鿿]{1,6}化(?:、|和|与)[一-鿿]{1,6}化",
     "flags": "g",
-    "message": "连续‘X化’可能形成口号式完整感。",
+    "message": "连续“X化”可能形成口号式完整感。",
     "rewrite": "检查各项是否具体、必要。"
   },
   {
@@ -178,5 +178,113 @@
     "flags": "g",
     "message": "检查提升/升级是否有具体对象和证据。",
     "rewrite": "写清楚实际变化；没有证据时降低断言。"
+  },
+  {
+    "id": "zh-inflation-002",
+    "locale": "zh-CN",
+    "category": "inflation",
+    "severity": "P1",
+    "evidence": "E2",
+    "type": "regex",
+    "pattern": "(?:充分)?(?:彰显|体现|展现|印证|凸显)了?[^。！？；]{1,45}(?:能力|价值|意义|实力|精神|决心|作用|重要性)",
+    "flags": "g",
+    "message": "具体事实后可能又追加了一层抽象拔高或能力表态。",
+    "rewrite": "保留事实；只有来源明确支持该评价时才保留拔高判断。"
+  },
+  {
+    "id": "zh-foundation-001",
+    "locale": "zh-CN",
+    "category": "inflation",
+    "severity": "P2",
+    "evidence": "E2",
+    "type": "regex",
+    "pattern": "为[^。！？；]{1,40}奠定(?:了)?(?:坚实|良好|重要)?(?:的)?基础",
+    "flags": "g",
+    "message": "“为……奠定基础”常把普通研究或变化包装成长期意义。",
+    "rewrite": "写清楚实际产出；没有后续证据时不要替未来效果背书。"
+  },
+  {
+    "id": "zh-marketing-002",
+    "locale": "zh-CN",
+    "category": "marketing",
+    "severity": "P3",
+    "evidence": "E1",
+    "type": "regex",
+    "pattern": "(?:风景如画|文化底蕴|叹为观止|无缝|充满活力|极致|卓越|重磅|震撼|匠心|焕新|宝藏|必打卡)",
+    "flags": "g",
+    "message": "宣传性形容词是弱信号；多个词聚集时检查是否只有情绪而没有可验证信息。",
+    "rewrite": "保留来源已有的具体特色，减少没有信息增量的兴奋性形容。"
+  },
+  {
+    "id": "zh-positioning-001",
+    "locale": "zh-CN",
+    "category": "semantic-emptiness",
+    "severity": "P2",
+    "evidence": "E1",
+    "type": "regex",
+    "pattern": "(?:作为|成为|定位于)[^，。！？；]{1,32}(?:焦点|标杆|典范|载体|抓手|核心|引擎)",
+    "flags": "g",
+    "message": "可能用定位或角色宣言代替简单判断。",
+    "rewrite": "能用“是/做/负责”说清楚时直接说明；保留真实组织定位。"
+  },
+  {
+    "id": "zh-academic-001",
+    "locale": "zh-CN",
+    "category": "translationese",
+    "severity": "P2",
+    "evidence": "E1",
+    "type": "regex",
+    "pattern": "(?:深入探讨|深入分析|关键作用|不断演变的[^，。！？；]{0,16}(?:格局|环境|生态))",
+    "flags": "g",
+    "message": "可能是模型化学术/翻译腔，尤其在同段成组出现时。",
+    "rewrite": "直接写研究对象、方法或结论；不要用“深入/关键/格局”代替内容。"
+  },
+  {
+    "id": "zh-transition-001",
+    "locale": "zh-CN",
+    "category": "staging",
+    "severity": "P3",
+    "evidence": "E1",
+    "type": "regex",
+    "pattern": "(?:此外|与此同时|值得一提的是|在此基础上)",
+    "flags": "g",
+    "message": "连接词本身很常见；高频或没有逻辑必要时才是模型化信号。",
+    "rewrite": "保留真正承担逻辑关系的连接词，否则直接进入下一事实。"
+  },
+  {
+    "id": "zh-attribution-001",
+    "locale": "zh-CN",
+    "category": "semantic-emptiness",
+    "severity": "P1",
+    "evidence": "E2",
+    "type": "regex",
+    "pattern": "(?:行业专家|业内人士|有专家|专家|相关数据显示|普遍认为|有观点)(?:表示|认为|指出|表明|显示|称)",
+    "flags": "g",
+    "message": "可能借用未具名权威支撑判断。",
+    "rewrite": "来源存在就准确保留来源；来源缺失时不要把模糊权威包装成事实。"
+  },
+  {
+    "id": "zh-contrast-003",
+    "locale": "zh-CN",
+    "category": "staging",
+    "severity": "P2",
+    "evidence": "E2",
+    "type": "regex",
+    "pattern": "(?:不仅仅?是|不只是)[^。！？；]{1,40}[，,](?:它|这|其)?(?:更是|而是|是)[^。！？；]{1,60}",
+    "flags": "g",
+    "message": "跨分句的“不仅/不只是 X，……是 Y”可能在制造戏剧化升级。",
+    "rewrite": "两层都含独立信息时保留；否则直接陈述主要判断。"
+  },
+  {
+    "id": "zh-pseudo-analysis-001",
+    "locale": "zh-CN",
+    "category": "inflation",
+    "severity": "P2",
+    "evidence": "E1",
+    "type": "regex",
+    "pattern": "(?:从而|进而|进一步)(?:有效)?(?:提升|推动|促进|赋能|助力|实现)[^。！？；]{1,45}",
+    "flags": "g",
+    "message": "句尾可能追加没有证据的效果链。",
+    "rewrite": "只保留来源已经给出的效果；没有数据或事实时删去推导。"
   }
 ]

@@ -32,6 +32,22 @@ Repeated shells such as “在……背景下”“从……角度来看”“�
 
 Chinese model prose often forces three dimensions, three benefits, or three closing summaries. Keep three real items; remove filler added only for symmetry.
 
+### Promotional adjective clusters
+
+Words such as “风景如画、文化底蕴、叹为观止、无缝、充满活力、极致、卓越” are weak alone. When several appear in one short block, check whether the text is substituting excitement for observable detail. Do not invent facilities, history, awards, customer feedback, or other specifics to compensate.
+
+### Academic inflation and future-foundation language
+
+Watch for clusters such as “深入探讨、关键作用、不断演变的……格局、为……奠定坚实基础”. Replace framing with the actual research object or result already present. Never invent a disease, dataset, sample size, study period, method, or finding.
+
+### Vague authority
+
+“行业专家认为、业内人士表示、有专家指出、相关数据显示” is a strong problem when no source is named. Preserve a real attribution when the source provides it. Otherwise do not upgrade anonymous authority into a named source or delete a materially important claim without noting the source gap in audit mode.
+
+### Cross-clause fake contrast
+
+Also inspect “不仅仅是 X，它是 Y”“不只是 X，这更是 Y”. The contrast can span comma-separated clauses rather than use the exact “不仅……更……” form. Keep it only when both halves carry distinct information.
+
 ### Generic conclusion paragraphs
 
 Cut endings that merely say the topic has “重要意义”“广阔前景”“值得期待” without adding a supported fact, decision, or next step.
