@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "locales": [
+    {
+      "locale": "zh-CN",
+      "status": "stable",
+      "rules": "zh-CN.json"
+    },
+    {
+      "locale": "en-US",
+      "status": "stable",
+      "rules": "en-US.json"
+    }
+  ]
+}

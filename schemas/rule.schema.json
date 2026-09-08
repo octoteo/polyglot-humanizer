@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Polyglot Humanizer Rule",
+  "type": "object",
+  "required": [
+    "id",
+    "locale",
+    "category",
+    "severity",
+    "evidence",
+    "type",
+    "pattern",
+    "flags",
+    "message",
+    "rewrite"
+  ],
+  "properties": {
+    "id": {"type": "string"},
+    "locale": {"enum": ["zh-CN", "en-US"]},
+    "category": {"type": "string"},
+    "severity": {"enum": ["P0", "P1", "P2", "P3"]},
+    "evidence": {"enum": ["E0", "E1", "E2", "E3"]},
+    "type": {"enum": ["regex"]},
+    "pattern": {"type": "string"},
+    "flags": {"type": "string"},
+    "message": {"type": "string"},
+    "rewrite": {"type": "string"}
+  },
+  "additionalProperties": false
+}
