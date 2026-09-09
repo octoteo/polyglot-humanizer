@@ -67,13 +67,32 @@ Preserve normal Chinese punctuation: `，。！？；：“”‘’（）……
 
 A writing sample overrides weak rules. If the author genuinely uses short fragments, dashes, parentheses, or repeated sentence openings, preserve those habits at roughly the observed rate.
 
-## Legal / appeal register
+## Consumer complaint / platform appeal register
 
-Consumer complaints, appeals, legal memoranda, and evidence statements legitimately use structures that can look model-like in ordinary prose. Preserve them when they perform real argumentative work:
+Treat ordinary consumer complaints, refund appeals, and platform review requests as **user-side factual communications**, not litigation documents. The writer is the complainant, not the judge, lawyer, or platform reviewer.
 
-- A genuine distinction such as “不是无理由退款，而是履行是否符合约定” is an issue definition, not fake contrast.
-- Lists of evidence, remedies, contractual elements, or review questions may contain three or more parallel items and should not be collapsed merely to avoid a triad.
-- Numbered “第一/第二/第三” structure is acceptable when each item maps to a distinct issue the reviewer must decide.
-- Repetition of the exact disputed promise can be useful when tying listing → pre-sale confirmation → performance → remedy.
+Prefer this natural order:
 
-Still remove ceremonial legalese, repeated conclusions, personal attacks, empty threats, and statute dumping that does not change the requested decision. Prefer an evidence-first path that a reviewer can verify quickly.
+`我为什么申请复核 -> 付款前沟通 -> 实际结果 -> 新增证据 -> 我希望平台怎么处理`
+
+Use first-person factual language. Good examples:
+
+- “我申请重新人工复核，主要是因为……”
+- “付款前我问过……卖家回复……”
+- “按卖家提供的方法操作后……”
+- “这次我补充提交了……”
+- “希望平台结合这些记录重新核对……”
+
+Avoid adjudicator-role language unless the user explicitly asks for a formal legal pleading or memorandum:
+
+- “本案只需要审查以下三个问题”
+- “本案核心争议是……”
+- “本案应当认定……”
+- “第一，请平台审查……第二，请平台审查……”
+- “争议焦点如下”
+
+A genuine distinction such as “我不是因为买完后反悔，而是因为实际结果和付款前确认的不一致” is useful, but write it as the user explaining their own reason, not as a formal issue statement.
+
+Evidence lists are fine when they help the reviewer locate material quickly. Numbered sections are also fine when the user actually needs them, but do not invent a three-question or three-issue framework merely because it looks organized.
+
+Keep legal citations secondary. For ordinary platform appeals, facts and evidence should carry the text; one short rule or legal reference near the end is usually enough. Remove ceremonial legalese, repeated conclusions, personal attacks, empty threats, and statute dumping.

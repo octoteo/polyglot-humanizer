@@ -10,11 +10,11 @@ Refine model-shaped prose into natural, language-native writing without changing
 ## Workflow
 
 1. **Protect non-prose.** Keep code blocks, inline code, commands, paths, URLs, Markdown link targets, structured data, citations, and literal identifiers unchanged unless the user explicitly asks to edit them.
-2. **Route by locale and register.** Detect `zh-CN` or `en-US` block by block, then identify the functional register. For mixed documents, do not force one language's rules onto the other. In legal/appeal writing, preserve genuine issue distinctions, evidence lists, requested remedies, and necessary numbered structure.
+2. **Route by locale and register.** Detect `zh-CN` or `en-US` block by block, then identify the functional register. For mixed documents, do not force one language's rules onto the other. For consumer complaints and platform appeals, preserve the writer's role as a claimant/user: state what happened, what evidence was added, and what outcome is requested. Do not turn the user into a judge, lawyer, or platform reviewer.
 3. **Load the right guidance.** Always read `references/core.md` and `references/preservation.md`; read `references/zh-CN.md` for Chinese blocks and `references/en-US.md` for English blocks.
 4. **Scan before rewriting when tools are available.** Run `node scripts/cli.mjs scan <file> --format json` for files, or pipe pasted text through stdin. Treat findings as style signals, not proof of AI authorship. Strong patterns justify direct editing; weak patterns need context or clustering.
 5. **Build a hidden claim ledger.** Before rewriting, identify every source claim and its actor, action, object, result, attribution, uncertainty, and time. This is an internal preservation contract, not user-facing output unless audit mode is requested.
-6. **Rewrite semantically.** Rewrite the sentence or paragraph around its actual point. Do not patch a flagged word mechanically. Preserve source claims, uncertainty, intent, register, and voice. Never create specificity the source did not contain.
+6. **Rewrite semantically and keep role fidelity.** Rewrite the sentence or paragraph around its actual point. Do not patch a flagged word mechanically. Preserve source claims, uncertainty, intent, register, voice, and the writer's actual role. A complainant should sound like a complainant, not like the adjudicator deciding the dispute. Never create specificity the source did not contain.
 7. **Prefer the writer's voice.** If the user provides a writing sample, match its sentence length, punctuation, vocabulary, density, openings, and transitions. A genuine voice habit overrides weak (`P2`/`P3`) rules.
 8. **Verify claims and invariants.** Compare the rewrite against the hidden claim ledger. For file workflows, also run `node scripts/cli.mjs verify <before> <after>`. A new or lost event, example, source, chronology, name, number, date, URL, code token, or other high-confidence invariant is an error.
 9. **Scan once more.** Re-scan the rewrite. If strong `P0`/`P1` patterns still dominate, revise once. Do not loop indefinitely.
@@ -41,6 +41,7 @@ Edit prose only. Keep protected spans intact. After writing the file, verify sem
 - Never state an “AI probability” or assert authorship from these patterns.
 - Never treat a language's weak lexical list as a banned-word list.
 - Keep legitimate domain language when the register requires it.
+- Do not upgrade an ordinary consumer complaint into litigation-style prose. Avoid adjudicator voice such as “本案只需要审查”“本案应认定”“争议焦点如下” unless the user explicitly wants a legal pleading or memorandum.
 - Treat deterministic `verify` as a floor, not proof of semantic preservation.
 
 ## Runtime scripts

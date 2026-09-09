@@ -2,7 +2,7 @@
 
 Language-native AI-writing refinement for humans and agents.
 
-**v1.2.0 supports `zh-CN` and `en-US`.**
+**v1.3.0 supports `zh-CN` and `en-US`.**
 
 Polyglot Humanizer removes model-shaped prose while preserving meaning, facts, register, and author voice. It is designed as an Agent Skill with a deterministic scanner and preservation verifier, not as an AI-authorship detector.
 
@@ -66,7 +66,7 @@ Mixed Chinese/English documents are routed block by block.
 
 ## Register-aware editing
 
-`zh-CN` now recognizes a `legal-appeal` register. Consumer complaints and review requests legitimately use issue distinctions, evidence lists, remedies, and numbered questions that would look overly structured in ordinary prose. These structures are preserved when they perform real adjudicative work rather than being removed simply to reduce style signals.
+`zh-CN` distinguishes ordinary `consumer-appeal` writing from formal legal prose. Platform complaints keep the user in first-person claimant voice and favor chronology + evidence + request. Adjudicator-style wording such as “本案只需要审查以下三个问题” is treated as role overreach unless the user explicitly asks for a formal legal pleading.
 
 ## Rule model
 
@@ -87,9 +87,9 @@ validate-rules
 
 ## Validation
 
-`v1.1.0` adds a real-world `zh-CN` regression pass against four public Humanizer examples spanning business copy, marketing, academic prose, and opinion/blog writing. The regression exposed both scanner recall gaps and preservation failures that simple token checks could miss. See [`EVALS.md`](EVALS.md) for the comparison methodology and results.
+The repository includes real-world-inspired `zh-CN` regressions for business copy, marketing, academic prose, opinion/blog writing, and consumer-platform appeals.
 
-Current automated suite: **29 tests**, plus rule-pack validation.
+Current automated suite: **31 tests**, plus rule-pack validation.
 
 ## Non-goals
 

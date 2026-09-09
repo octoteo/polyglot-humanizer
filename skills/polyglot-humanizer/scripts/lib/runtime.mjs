@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RULE_DIR = path.resolve(__dirname, '../../references/rules');
 
 export const severityWeight = { P0: 4, P1: 3, P2: 2, P3: 1 };
-export const runtimeVersion = '1.2.0';
+export const runtimeVersion = '1.3.0';
 
 export function loadRules(locale) {
   const p = path.join(RULE_DIR, `${locale}.json`);
@@ -101,23 +101,38 @@ export function detectRegister(text, locale='zh-CN') {
   ];
   let hits = 0;
   for (const re of signals) if (re.test(text)) hits++;
-  return hits >= 3 ? 'legal-appeal' : 'general';
+  return hits >= 3 ? 'consumer-appeal' : 'general';
 }
 
 function applyRegisterGuards(blockText, locale, blockFindings, inheritedRegister='general') {
   const register = inheritedRegister !== 'general' ? inheritedRegister : detectRegister(blockText, locale);
-  if (register !== 'legal-appeal') return blockFindings;
+  if (register !== 'consumer-appeal') return blockFindings;
   const legalIssueContrast = /(?:退款|退货|反悔|无理由|虚拟商品|履行|约定|承诺|实际操作|实际结果|教程)/;
   const legalEnum = /(?:证据|凭证|截图|记录|页面|商品描述|聊天|约定|履行|救济|重作|退货|减少价款|报酬|第\s*\d+\s*条)/;
-  return blockFindings.map(f => {
+  const guarded = blockFindings.map(f => {
     if (['zh-contrast-001','zh-contrast-002','zh-contrast-003'].includes(f.id) && legalIssueContrast.test(f.text)) {
-      return { ...f, severity:'P3', message:'法律/申诉语域中的真实争议区分；通常保留，除非只是重复强调。' };
+      return { ...f, severity:'P3', message:'消费者申诉中的真实理由区分；通常保留，除非只是重复强调。' };
     }
-    if (f.id === 'zh-triad-001' && (legalEnum.test(f.text) || register === 'legal-appeal')) {
-      return { ...f, severity:'P3', message:'法律/申诉语域中的证据、救济或条件枚举；通常属于必要结构。' };
+    if (f.id === 'zh-triad-001' && (legalEnum.test(f.text) || register === 'consumer-appeal')) {
+      return { ...f, severity:'P3', message:'消费者申诉中的证据、救济或条件枚举；通常属于必要结构。' };
     }
     return f;
   });
+  const rolePatterns = [
+    /本案(?:只需要|仅需|应当|应|需要|核心争议|争议焦点|应予|应认定)/g,
+    /(?:请|恳请)平台(?:重点)?(?:审查|判断|认定)以下(?:三|3|几个)个问题/g,
+    /第[一二三四五六七八九十]，?请(?:平台)?(?:审查|判断|认定)/g,
+  ];
+  for (const re of rolePatterns) {
+    for (const m of blockText.matchAll(re)) {
+      guarded.push({
+        id:'zh-consumer-appeal-role-001', locale, category:'voice', severity:'P1', evidence:'E1',
+        text:m[0], message:'申诉人越位成了裁判/审查者口吻，容易显得像法律模板或AI代写。',
+        rewrite:'改回第一人称事实与请求：说明自己为何不同意、补了什么证据、希望平台重新核对什么。'
+      });
+    }
+  }
+  return guarded;
 }
 
 function aggregateBlockFindings(blockText, locale, blockFindings) {
@@ -125,32 +140,17 @@ function aggregateBlockFindings(blockText, locale, blockFindings) {
   const aggregates = [];
   const countById = new Map();
   for (const f of blockFindings) countById.set(f.id, (countById.get(f.id) || 0) + 1);
-
   if ((countById.get('zh-jargon-001') || 0) >= 3) {
-    aggregates.push({
-      id: 'zh-heuristic-jargon-cluster', locale, category: 'semantic-emptiness', severity: 'P1', evidence: 'E1',
-      text: blockText, message: '同一段出现三个以上抽象业务词，语义被黑话遮蔽的风险较高。',
-      rewrite: '恢复主体、动作、对象和可观察结果；不要用同义黑话互换。'
-    });
+    aggregates.push({ id:'zh-heuristic-jargon-cluster', locale, category:'semantic-emptiness', severity:'P1', evidence:'E1', text:blockText, message:'同一段出现三个以上抽象业务词，语义被黑话遮蔽的风险较高。', rewrite:'恢复主体、动作、对象和可观察结果；不要用同义黑话互换。' });
   }
-
   const marketingCount = blockFindings.filter(f => f.id === 'zh-marketing-002').length;
   if (marketingCount >= 3) {
-    aggregates.push({
-      id: 'zh-heuristic-marketing-cluster', locale, category: 'marketing', severity: 'P1', evidence: 'E1',
-      text: blockText, message: '同一段聚集多个宣传性形容词，可能在用情绪替代信息。',
-      rewrite: '保留可验证特色，删除没有信息增量的宣传性修饰。'
-    });
+    aggregates.push({ id:'zh-heuristic-marketing-cluster', locale, category:'marketing', severity:'P1', evidence:'E1', text:blockText, message:'同一段聚集多个宣传性形容词，可能在用情绪替代信息。', rewrite:'保留可验证特色，删除没有信息增量的宣传性修饰。' });
   }
-
   const academicIds = new Set(['zh-academic-001', 'zh-foundation-001', 'zh-transition-001']);
   const academicSignals = blockFindings.filter(f => academicIds.has(f.id));
   if (academicSignals.some(f => f.id === 'zh-academic-001') && academicSignals.length >= 3) {
-    aggregates.push({
-      id: 'zh-heuristic-academic-cluster', locale, category: 'translationese', severity: 'P1', evidence: 'E1',
-      text: blockText, message: '同一段聚集多个学术模板信号，可能用框架性措辞代替研究内容。',
-      rewrite: '优先写研究对象、方法和来源已有的结论，删除没有信息增量的“深入/关键/未来基础”包装。'
-    });
+    aggregates.push({ id:'zh-heuristic-academic-cluster', locale, category:'translationese', severity:'P1', evidence:'E1', text:blockText, message:'同一段聚集多个学术模板信号，可能用框架性措辞代替研究内容。', rewrite:'优先写研究对象、方法和来源已有的结论，删除没有信息增量的“深入/关键/未来基础”包装。' });
   }
   return aggregates;
 }
@@ -168,11 +168,7 @@ export function scanText(input, forcedLocale='auto') {
     for (const rule of rules) {
       const re = compileRule(rule);
       for (const m of block.text.matchAll(re)) {
-        blockFindings.push({
-          id: rule.id, locale, category: rule.category, severity: rule.severity, evidence: rule.evidence,
-          start: block.start + m.index, end: block.start + m.index + m[0].length,
-          text: m[0], message: rule.message, rewrite: rule.rewrite
-        });
+        blockFindings.push({ id:rule.id, locale, category:rule.category, severity:rule.severity, evidence:rule.evidence, start:block.start+m.index, end:block.start+m.index+m[0].length, text:m[0], message:rule.message, rewrite:rule.rewrite });
       }
     }
     for (const f of repeatedOpeners(block.text, locale)) blockFindings.push(f);
@@ -183,33 +179,19 @@ export function scanText(input, forcedLocale='auto') {
   findings.sort((a,b)=>(severityWeight[b.severity]-severityWeight[a.severity]) || ((a.start??1e9)-(b.start??1e9)));
   const score = findings.reduce((s,f)=>s+severityWeight[f.severity],0);
   const strong = findings.filter(f=>f.severity==='P0'||f.severity==='P1').length;
-  return { version:runtimeVersion, documentRegister, blocks: blocks.map(b=>{ const locale=forcedLocale==='auto'?detectLocale(b.text):forcedLocale; const register=(locale==='zh-CN' && documentRegister!=='general')?documentRegister:detectRegister(b.text, locale); return {locale, register, start:b.start,end:b.end}; }), score, strongFindings: strong, findings };
+  return { version:runtimeVersion, documentRegister, blocks:blocks.map(b=>{ const locale=forcedLocale==='auto'?detectLocale(b.text):forcedLocale; const register=(locale==='zh-CN'&&documentRegister!=='general')?documentRegister:detectRegister(b.text,locale); return {locale,register,start:b.start,end:b.end}; }), score, strongFindings:strong, findings };
 }
 
 export function extractInvariants(text) {
   const bag = new Map();
   const occupied = new Uint8Array(text.length);
-  const add=(kind,val)=>{
-    const k=`${kind}:${val}`; bag.set(k,(bag.get(k)||0)+1);
-  };
+  const add=(kind,val)=>{ const k=`${kind}:${val}`; bag.set(k,(bag.get(k)||0)+1); };
   const mark=(start,end)=>{ for(let i=start;i<end;i++) occupied[i]=1; };
   const overlaps=(start,end)=>{ for(let i=start;i<end;i++) if(occupied[i]) return true; return false; };
   const collect=(kind,re,valueFn=(m)=>m[0],normalize=(v)=>v)=>{
-    for(const m of text.matchAll(re)) {
-      const start=m.index, end=start+m[0].length;
-      if(overlaps(start,end)) continue;
-      add(kind, normalize(valueFn(m)));
-      mark(start,end);
-    }
+    for(const m of text.matchAll(re)) { const start=m.index,end=start+m[0].length; if(overlaps(start,end)) continue; add(kind,normalize(valueFn(m))); mark(start,end); }
   };
-
-  // Ignore list/outline numbering as structure, not factual numeric content.
-  for (const m of text.matchAll(/(?:^|\n)[ \t]*(?:\d{1,3}|[一二三四五六七八九十]{1,3})[.．、)](?=[ \t])/g)) {
-    const local = m[0].search(/(?:\d|[一二三四五六七八九十])/);
-    const start = m.index + Math.max(local, 0);
-    mark(start, m.index + m[0].length);
-  }
-
+  for (const m of text.matchAll(/(?:^|\n)[ \t]*(?:\d{1,3}|[一二三四五六七八九十]{1,3})[.．、)](?=[ \t])/g)) { const local=m[0].search(/(?:\d|[一二三四五六七八九十])/); const start=m.index+Math.max(local,0); mark(start,m.index+m[0].length); }
   collect('md-target', /\[[^\]]+\]\(([^)]+)\)/g, m=>m[1]);
   collect('url', /https?:\/\/[^\s)\]}>]+/g, m=>m[0], v=>v.replace(/[.,;:!?]+$/,''));
   collect('email', /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi);
@@ -226,12 +208,9 @@ export function extractInvariants(text) {
 export function verifyPreservation(before, after) {
   const a=extractInvariants(before), b=extractInvariants(after);
   const missing=[], added=[];
-  // Deterministic preservation protects the presence of unique factual tokens,
-  // not their repetition count. Humanizing often removes duplicate mentions.
-  // Claim-level completeness is enforced separately by the semantic claim ledger.
   for (const [k] of a) if (!b.has(k)) missing.push({token:k,count:1});
   for (const [k] of b) if (!a.has(k)) added.push({token:k,count:1});
-  return { pass: missing.length===0 && added.length===0, missing, added };
+  return { pass:missing.length===0 && added.length===0, missing, added };
 }
 
 export function validateRuleObject(r) {

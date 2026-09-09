@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0 - 2026-09-09
+
+- Split ordinary consumer/platform appeals from formal legal-writing behavior.
+- Add role-fidelity guardrails: a complainant must not be rewritten as a judge, lawyer, or platform reviewer.
+- Flag adjudicator-style phrases such as “本案只需要审查以下三个问题” in consumer appeals.
+- Prefer first-person chronology and evidence over artificial issue trees.
+- Keep legal citations secondary unless the user explicitly requests a formal pleading or legal memorandum.
+
 ## 1.2.0 - 2026-09-09
 
 - Add `legal-appeal` register detection for Simplified Chinese consumer complaints and review requests.
